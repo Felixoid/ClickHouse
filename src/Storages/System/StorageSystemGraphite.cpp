@@ -86,7 +86,7 @@ void StorageSystemGraphite::fillData(MutableColumns & res_columns, ContextPtr co
             bool is_default = pattern.regexp == nullptr;
             String regexp;
             String function;
-             const String & rule_type = ruleTypeStr(pattern.rule_type);
+            const String & rule_type = ruleTypeStr(pattern.rule_type);
 
             if (is_default)
             {

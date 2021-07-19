@@ -6,6 +6,7 @@
 
 #include <string_view>
 #include <vector>
+#include <map>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -25,11 +26,22 @@ namespace DB::ErrorCodes
 
 namespace DB::Graphite
 {
-static const String rule_types_str[] = {"all", "plain", "tagged"};
-
+static std::map<RuleType, const String> ruleTypeMap =
+{
+   { RuleTypeAll, "all" },
+   { RuleTypePlain, "plain" },
+   { RuleTypeTagged, "tagged"}
+};
 const String & ruleTypeStr(RuleType rule_type)
 {
-    return rule_types_str[rule_type];
+   try
+   {
+       return ruleTypeMap.at(rule_type);
+   }
+   catch (...)
+   {
+       throw Exception("invalid rule type: " + std::to_string(rule_type), DB::ErrorCodes::BAD_ARGUMENTS);
+   }
 }
 
 RuleType ruleType(const String & s)
