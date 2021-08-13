@@ -94,9 +94,11 @@ bool checkRule(const Graphite::Pattern & pattern, const struct PatternForCheck &
     if (rule_type_eq && regexp_eq && function_eq && retentions_eq)
         return true;
 
-    message = typ + " rollup rule mismatch ( " +
-        (rule_type_eq ? "" : "rule_type ") + (regexp_eq ? "" : "regexp ") +
-        (function_eq ? "" : "function ") + (retentions_eq ? "" : "retentions ") + ") for '" + path + "'";
+    message = typ + " rollup rule mismatch for '" + path + "'," +
+        (rule_type_eq ? "" : "rule_type ") +
+        (regexp_eq ? "" : "regexp ") +
+        (function_eq ? "" : "function ") +
+        (retentions_eq ? "" : "retentions ");
     return false;
 }
 
@@ -143,63 +145,63 @@ TEST(GraphiteTest, testSelectPattern)
         xml_istream(R"END(<yandex>
 <graphite_rollup>
     <pattern>
- 	    <regexp>\.sum$</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
-		<regexp>^((.*)|.)sum\?</regexp>
-		<function>sum</function>
-	</pattern>
-	<pattern>
- 		<regexp>\.max$</regexp>
- 		<function>max</function>
-	</pattern>
-	<pattern>
-		<regexp>^((.*)|.)max\?</regexp>
-		<function>max</function>
-	</pattern>
-	<pattern>
- 		<regexp>\.min$</regexp>
- 		<function>min</function>
-	</pattern>
-	<pattern>
- 		<regexp>^((.*)|.)min\?</regexp>
- 		<function>min</function>
-	</pattern>
-	<pattern>
- 		<regexp>\.(count|sum|sum_sq)$</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
- 		<regexp>^((.*)|.)(count|sum|sum_sq)\?</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
- 		<regexp>^retention\.</regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
- 	<default>
- 		<function>avg</function>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>3600</age>
- 			<precision>300</precision>
- 	    </retention>
- 	    <retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
- 	</default>
+        <regexp>\.sum$</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
+        <regexp>^((.*)|.)sum\?</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
+        <regexp>\.max$</regexp>
+        <function>max</function>
+    </pattern>
+    <pattern>
+        <regexp>^((.*)|.)max\?</regexp>
+        <function>max</function>
+    </pattern>
+    <pattern>
+        <regexp>\.min$</regexp>
+        <function>min</function>
+    </pattern>
+    <pattern>
+        <regexp>^((.*)|.)min\?</regexp>
+        <function>min</function>
+    </pattern>
+    <pattern>
+        <regexp>\.(count|sum|sum_sq)$</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
+        <regexp>^((.*)|.)(count|sum|sum_sq)\?</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
+        <regexp>^retention\.</regexp>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <default>
+        <function>avg</function>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>3600</age>
+            <precision>300</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </default>
 </graphite_rollup>
 </yandex>
 )END");
@@ -351,121 +353,121 @@ TEST(GraphiteTest, testSelectPatternTyped)
     std::istringstream // STYLE_CHECK_ALLOW_STD_STRING_STREAM
         xml_istream(R"END(<yandex>
 <graphite_rollup>
-	<pattern>
+    <pattern>
         <rule_type>plain</rule_type>
- 		<regexp>\.sum$</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
+        <regexp>\.sum$</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
         <rule_type>tagged</rule_type>
-		<regexp>^((.*)|.)sum\?</regexp>
-		<function>sum</function>
-	</pattern>
-	<pattern>
+        <regexp>^((.*)|.)sum\?</regexp>
+        <function>sum</function>
+    </pattern>
+    <pattern>
         <rule_type>plain</rule_type>
- 		<regexp>\.max$</regexp>
- 		<function>max</function>
-	</pattern>
-	<pattern>
+        <regexp>\.max$</regexp>
+        <function>max</function>
+    </pattern>
+    <pattern>
         <rule_type>tagged</rule_type>
-		<regexp>^((.*)|.)max\?</regexp>
-		<function>max</function>
-	</pattern>
-	<pattern>
+        <regexp>^((.*)|.)max\?</regexp>
+        <function>max</function>
+    </pattern>
+    <pattern>
         <rule_type>plain</rule_type>
- 		<regexp>\.min$</regexp>
- 		<function>min</function>
-	</pattern>
-	<pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp>^((.*)|.)min\?</regexp>
- 		<function>min</function>
-	</pattern>
-	<pattern>
-		<rule_type>plain</rule_type>
- 		<regexp>\.(count|sum|sum_sq)$</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp>^((.*)|.)(count|sum|sum_sq)\?</regexp>
- 		<function>sum</function>
-	</pattern>
-	<pattern>
-		<rule_type>plain</rule_type>
- 		<regexp>^retention\.</regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
+        <regexp>\.min$</regexp>
+        <function>min</function>
+    </pattern>
     <pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp><![CDATA[[\?&]retention=hour(&.*)?$]]></regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
+        <rule_type>tagged</rule_type>
+        <regexp>^((.*)|.)min\?</regexp>
+        <function>min</function>
+    </pattern>
     <pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp><![CDATA[[\?&]retention=hour(&.*)?$]]></regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
+    <rule_type>plain</rule_type>
+     <regexp>\.(count|sum|sum_sq)$</regexp>
+     <function>sum</function>
+    </pattern>
     <pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp> retention=10min ; env=staging </regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>600</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
+        <rule_type>tagged</rule_type>
+        <regexp>^((.*)|.)(count|sum|sum_sq)\?</regexp>
+        <function>sum</function>
+    </pattern>
     <pattern>
-		<rule_type>tagged</rule_type>
- 		<regexp> retention=10min ; env=[A-Za-z-]+rod[A-Za-z-]+ </regexp>
- 		<retention>
- 			<age>0</age>
- 			<precision>600</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
-	</pattern>
- 	<default>
- 		<function>avg</function>
- 		<retention>
- 			<age>0</age>
- 			<precision>60</precision>
- 		</retention>
- 		<retention>
- 			<age>3600</age>
- 			<precision>300</precision>
- 		</retention>
- 		<retention>
- 			<age>86400</age>
- 			<precision>3600</precision>
- 		</retention>
- 	</default>
+        <rule_type>plain</rule_type>
+        <regexp>^retention\.</regexp>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <pattern>
+        <rule_type>tagged</rule_type>
+        <regexp><![CDATA[[\?&]retention=hour(&.*)?$]]></regexp>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <pattern>
+        <rule_type>tagged</rule_type>
+        <regexp><![CDATA[[\?&]retention=hour(&.*)?$]]></regexp>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <pattern>
+        <rule_type>tagged</rule_type>
+        <regexp> retention=10min ; env=staging </regexp>
+        <retention>
+            <age>0</age>
+            <precision>600</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <pattern>
+        <rule_type>tagged</rule_type>
+        <regexp> retention=10min ; env=[A-Za-z-]+rod[A-Za-z-]+ </regexp>
+        <retention>
+            <age>0</age>
+            <precision>600</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </pattern>
+    <default>
+        <function>avg</function>
+        <retention>
+            <age>0</age>
+            <precision>60</precision>
+        </retention>
+        <retention>
+            <age>3600</age>
+            <precision>300</precision>
+        </retention>
+        <retention>
+            <age>86400</age>
+            <precision>3600</precision>
+        </retention>
+    </default>
 </graphite_rollup>
 </yandex>
 )END");
