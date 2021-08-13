@@ -35,14 +35,14 @@ static std::unordered_map<RuleType, const String> ruleTypeMap =
 
 const String & ruleTypeStr(RuleType rule_type)
 {
-   try
-   {
-       return ruleTypeMap.at(rule_type);
-   }
-   catch (...)
-   {
-       throw Exception("invalid rule type: " + std::to_string(rule_type), DB::ErrorCodes::BAD_ARGUMENTS);
-   }
+    try
+    {
+        return ruleTypeMap.at(rule_type);
+    }
+    catch (...)
+    {
+        throw Exception("invalid rule type: " + std::to_string(rule_type), DB::ErrorCodes::BAD_ARGUMENTS);
+    }
 }
 
 RuleType ruleType(const String & s)
