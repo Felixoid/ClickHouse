@@ -33,7 +33,7 @@ static ConfigProcessor::LoadedConfig loadConfiguration(const std::string & confi
     return config;
 }
 
-static ConfigProcessor::LoadedConfig loadConfigurationFromStream(std::istringstream & xml_istream)
+static ConfigProcessor::LoadedConfig loadConfigurationFromString(std::string & s)
 {
     char tmp_file[19];
     strcpy(tmp_file, "/tmp/rollup-XXXXXX");
@@ -42,25 +42,30 @@ static ConfigProcessor::LoadedConfig loadConfigurationFromStream(std::istringstr
     {
         throw std::runtime_error(strerror(errno));
     }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-result"
-    for (std::string line; std::getline(xml_istream, line);)
-    {
-        write(fd, line.c_str(), line.size());
-        write(fd, "\n", 1);
-    }
-    close(fd);
-    auto config_path = std::string(tmp_file) + ".xml";
-    if (std::rename(tmp_file, config_path.c_str()))
-    {
-        int err = errno;
+    try {
+        if (write(fd, s.c_str(), s.size()) < s.size()) {
+            throw std::runtime_error("unable write to temp file");
+        }
+        if (write(fd, "\n", 1) != 1) {
+            throw std::runtime_error("unable write to temp file");
+        }
+        close(fd);
+        auto config_path = std::string(tmp_file) + ".xml";
+        if (std::rename(tmp_file, config_path.c_str()))
+        {
+            int err = errno;
+            remove(tmp_file);
+            throw std::runtime_error(strerror(err));
+        }
+        ConfigProcessor::LoadedConfig config = loadConfiguration(config_path);
         remove(tmp_file);
-        throw std::runtime_error(strerror(err));
+        return config;
     }
-    ConfigProcessor::LoadedConfig config = loadConfiguration(config_path);
-    remove(tmp_file);
-#pragma GCC diagnostic pop
-    return config;
+    catch(...)
+    {
+        remove(tmp_file);
+        throw;
+    }
 }
 
 static Graphite::Params setGraphitePatterns(ContextMutablePtr context, ConfigProcessor::LoadedConfig & config)
@@ -141,8 +146,8 @@ TEST(GraphiteTest, testSelectPattern)
 
     using namespace std::literals;
 
-    std::istringstream // STYLE_CHECK_ALLOW_STD_STRING_STREAM
-        xml_istream(R"END(<yandex>
+    std::string
+        xml(R"END(<yandex>
 <graphite_rollup>
     <pattern>
         <regexp>\.sum$</regexp>
@@ -276,7 +281,7 @@ TEST(GraphiteTest, testSelectPattern)
         }
     };
 
-    auto config = loadConfigurationFromStream(xml_istream);
+    auto config = loadConfigurationFromString(xml);
     ContextMutablePtr context = getContext().context;
     Graphite::Params params = setGraphitePatterns(context, config);
 
@@ -350,8 +355,8 @@ TEST(GraphiteTest, testSelectPatternTyped)
 
     using namespace std::literals;
 
-    std::istringstream // STYLE_CHECK_ALLOW_STD_STRING_STREAM
-        xml_istream(R"END(<yandex>
+    std::string
+        xml(R"END(<yandex>
 <graphite_rollup>
     <pattern>
         <rule_type>plain</rule_type>
@@ -557,7 +562,7 @@ TEST(GraphiteTest, testSelectPatternTyped)
         }
     };
 
-    auto config = loadConfigurationFromStream(xml_istream);
+    auto config = loadConfigurationFromString(xml);
     ContextMutablePtr context = getContext().context;
     Graphite::Params params = setGraphitePatterns(context, config);
 
