@@ -43,10 +43,12 @@ static ConfigProcessor::LoadedConfig loadConfigurationFromString(std::string & s
         throw std::runtime_error(strerror(errno));
     }
     try {
-        if (write(fd, s.c_str(), s.size()) < s.size()) {
+        if (write(fd, s.c_str(), s.size()) < s.size())
+        {
             throw std::runtime_error("unable write to temp file");
         }
-        if (write(fd, "\n", 1) != 1) {
+        if (write(fd, "\n", 1) != 1)
+        {
             throw std::runtime_error("unable write to temp file");
         }
         close(fd);
