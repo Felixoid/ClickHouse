@@ -63,7 +63,7 @@ static ConfigProcessor::LoadedConfig loadConfigurationFromString(std::string & s
         remove(tmp_file);
         return config;
     }
-    catch(...)
+    catch (...)
     {
         remove(tmp_file);
         throw;
