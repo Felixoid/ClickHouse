@@ -317,7 +317,7 @@ TEST(GraphiteTest, testBuildTaggedRegex)
     std::vector<struct RegexCheck> tests
     {
         {
-            R"END(cpu\.loadavg ; project = DB.* ; env = st.* )END",
+            "cpu\\.loadavg ; project = DB.* ; env = st.* ",
             R"END(cpu\.loadavg\?(.*&)?env=st.*&(.*&)?project=DB.*(&.*)?$)END",
             R"END(cpu.loadavg?env=staging&project=DBAAS)END",
             R"END(cpu.loadavg?env=staging&project=D)END"
@@ -329,13 +329,13 @@ TEST(GraphiteTest, testBuildTaggedRegex)
             R"END(cpu.loadavg?env=stagingN&project=DBAAS)END"
         },
         {
-            R"END( env = staging ; )END",
+            " env = staging ; ",
             R"END([\?&]env=staging(&.*)?$)END",
             R"END(cpu.loadavg?env=staging&project=DPG)END",
             R"END(cpu.loadavg?env=stagingN)END"
         },
         {
-            R"END( ^name ;)END",
+            " ^name ;",
             R"END(^name\?)END",
             R"END(name?env=staging&project=DPG)END",
             R"END(nameN?env=stagingN)END",
