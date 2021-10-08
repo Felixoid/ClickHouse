@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/StringRef.h>
+#include <base/StringRef.h>
 #include <Common/OptimizedRegularExpression.h>
 #include <AggregateFunctions/IAggregateFunction.h>
 
