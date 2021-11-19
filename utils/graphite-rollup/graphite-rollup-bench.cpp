@@ -6,8 +6,6 @@
 #include <stdexcept>
 #include <system_error>
 
-namespace fs = std::filesystem;
-
 #include <boost/program_options.hpp>
 
 #include <AggregateFunctions/registerAggregateFunctions.h>
@@ -27,12 +25,12 @@ std::vector<StringRef> loadMetrics(const std::string & metrics_file)
     std::vector<StringRef> metrics;
 
     FILE * stream;
-    char * line = NULL;
+    char * line = nullptr;
     size_t len = 0;
     ssize_t nread;
 
     stream = fopen(metrics_file.c_str(), "r");
-    if (stream == NULL)
+    if (stream == nullptr)
     {
         throw std::runtime_error(strerror(errno));
     }
@@ -76,7 +74,7 @@ void bench(const std::string & config_path, const std::string & metrics_file, si
 {
     auto config = loadConfiguration(config_path);
 
-    auto context = Context::createGlobal(shared_context.get());;
+    auto context = Context::createGlobal(shared_context.get());
     context->setConfig(config.configuration.get());
 
     Graphite::Params params;
@@ -109,7 +107,7 @@ void bench(const std::string & config_path, const std::string & metrics_file, si
     for (i = 0; i < metrics.size(); i++)
     {
         std::cout << metrics[i].data << " " << durations[i] / n << " ns\n";
-        free((void *)metrics[i].data);
+        free(const_cast<void *>(static_cast<const void *>(metrics[i].data)));
     }
 }
 

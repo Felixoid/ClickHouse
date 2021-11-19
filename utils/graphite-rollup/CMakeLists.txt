@@ -19,16 +19,5 @@ target_include_directories(
     ${ClickHouse_SOURCE_DIR}/contrib/cityhash102/include
     ${RE2_INCLUDE_DIR} ${CMAKE_BINARY_DIR}/contrib/re2_st
 )
-target_compile_options(graphite-rollup-bench PRIVATE
-        -Wno-zero-as-null-pointer-constant
-        -Wno-suggest-override
-        -Wno-suggest-destructor-override
-        -Wno-extra-semi-stmt
-        -Wno-atomic-implicit-seq-cst
-        -Wno-signed-enum-bitfield
-        -Wno-non-virtual-dtor
-        -Wno-unused-parameter
-        -Wno-old-style-cast
-    )
 
 target_compile_definitions(graphite-rollup-bench PRIVATE RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
