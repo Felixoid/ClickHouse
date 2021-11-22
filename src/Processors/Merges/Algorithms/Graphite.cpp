@@ -310,7 +310,7 @@ std::string buildTaggedRegex(std::string regexp_str)
   *     </default>
   * </graphite_rollup>
   */
-static RuleType
+static const Pattern &
 appendGraphitePattern(
     const Poco::Util::AbstractConfiguration & config,
     const String & config_element, Patterns & patterns,
@@ -400,7 +400,7 @@ appendGraphitePattern(
         std::sort(pattern.retentions.begin(), pattern.retentions.end(), compareRetentions);
 
     patterns.emplace_back(pattern);
-    return pattern.rule_type;
+    return patterns.back();
 }
 
 void setGraphitePatternsFromConfig(ContextPtr context, const String & config_element, Graphite::Params & params)
@@ -425,7 +425,7 @@ void setGraphitePatternsFromConfig(ContextPtr context, const String & config_ele
     {
         if (startsWith(key, "pattern"))
         {
-            if (appendGraphitePattern(config, config_element + "." + key, params.patterns, false, context) != RuleTypeAll)
+            if (appendGraphitePattern(config, config_element + "." + key, params.patterns, false, context).rule_type != RuleTypeAll)
                 params.patterns_typed = true;
         }
         else if (key == "default")
