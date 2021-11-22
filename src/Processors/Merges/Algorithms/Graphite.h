@@ -93,7 +93,12 @@ namespace DB::Graphite
 {
 
 // sync with rule_types_str
-enum RuleType { RuleTypeAll = 0, RuleTypePlain = 1, RuleTypeTagged = 2 };
+enum RuleType {
+    RuleTypeAll = 0,        // default, with regex, compatible with old scheme
+    RuleTypePlain = 1,      // plain metrics, with regex, compatible with old scheme
+    RuleTypeTagged = 2,     // tagged metrics, with regex, compatible with old scheme
+    RuleTypeTagged2 = 3     // tagged metrics, with regex (converted to  RuleTypeTagged from string like 'retention=10min ; env=(staging|prod)')
+};
 
 const String & ruleTypeStr(RuleType rule_type);
 

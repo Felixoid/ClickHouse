@@ -30,7 +30,8 @@ static std::unordered_map<RuleType, const String> ruleTypeMap =
 {
    { RuleTypeAll, "all" },
    { RuleTypePlain, "plain" },
-   { RuleTypeTagged, "tagged"}
+   { RuleTypeTagged, "tagged"},
+   { RuleTypeTagged2, "tagged2"}
 };
 
 const String & ruleTypeStr(RuleType rule_type)
@@ -53,6 +54,8 @@ RuleType ruleType(const String & s)
         return RuleTypePlain;
     else if (s == "tagged")
         return RuleTypeTagged;
+    else if (s == "tagged2")
+        return RuleTypeTagged2;
     else
         throw Exception("invalid rule type: " + s, DB::ErrorCodes::BAD_ARGUMENTS);
 }
@@ -238,41 +241,56 @@ std::ostream & operator<<(std::ostream & stream, const Pattern & a)
 
 std::string buildTaggedRegex(std::string regexp_str)
 {
+    /*
+    * tag in format
+    *
+    * tag1=value1 ; tag2=VALUE2_REGEX ; tag3=value3
+    * or
+    * name ; tag1=value1 ; tag2=VALUE2_REGEX ; tag3=value3
+    * or for one tag add ';' to the end
+    * tag1=value1 ;
+    *
+    * Resulting regex against metric like
+    * name?tag1=val1&tag2=val2
+    *
+    * So,
+    *
+    * name
+    * produce
+    * name\?
+    *
+    * tag2=val2
+    * produce
+    * [\?&]tag2=val2(&.*)?$
+    *
+    * nam.* ; tag1=val1 ; tag2=val2
+    * produce
+    * nam.*\?(.*&)?tag1=val1&(.*&)?tag2=val2(&.*)?$
+    */
+
     boost::erase_all(regexp_str, " "); /* cleanup spaces */
-    size_t name_pos = regexp_str.find(';');
-    if (name_pos != regexp_str.npos)
+
+    std::vector<std::string> tags;
+
+    boost::split(tags, regexp_str, boost::is_any_of(";"));
+    /* remove empthy elements */
+    using namespace std::string_literals;
+    tags.erase(std::remove(tags.begin(), tags.end(), ""s), tags.end());
+    if (tags[0].find('=') == tags[0].npos)
     {
-        /* tag in format
-         *
-         * tag1=value1 ; tag2=VALUE2_REGEX ; tag3=value3
-         * or
-         * name ; tag1=value1 ; tag2=VALUE2_REGEX ; tag3=value3
-         * or for one tag add ';' to the end
-         * tag1=value1 ;
-         */
-
-        std::vector<std::string> tags;
-
-        boost::split(tags, regexp_str, boost::is_any_of(";"));
-        /* remove empthy elements */
-        using namespace std::string_literals;
-        tags.erase(std::remove(tags.begin(), tags.end(), ""s), tags.end());
-        if (tags[0].find('=') == tags[0].npos)
-        {
-            if (tags.size() == 1) /* only name */
-                return tags[0] + "\\?";
-            /* start with name value */
-            regexp_str = tags[0] + "\\?(.*&)?";
-            tags.erase(std::begin(tags));
-        }
-        else
-            regexp_str = "[\\?&]";
-
-        std::sort(std::begin(tags), std::end(tags)); /* sorted tag keys */
-        regexp_str += boost::algorithm::join(tags, "&(.*&)?");
-        regexp_str += "(&.*)?$"; /* close regex */
-        return regexp_str;
+        if (tags.size() == 1) /* only name */
+            return tags[0] + "\\?";
+        /* start with name value */
+        regexp_str = tags[0] + "\\?(.*&)?";
+        tags.erase(std::begin(tags));
     }
+    else
+        regexp_str = "[\\?&]";
+
+    std::sort(std::begin(tags), std::end(tags)); /* sorted tag keys */
+    regexp_str += boost::algorithm::join(tags, "&(.*&)?");
+    regexp_str += "(&.*)?$"; /* close regex */
+
     return regexp_str;
 }
 
@@ -358,9 +376,11 @@ appendGraphitePattern(
 
     if (!pattern.regexp_str.empty())
     {
-        if (pattern.rule_type == RuleTypeTagged)
+        if (pattern.rule_type == RuleTypeTagged2)
         {
+            // construct tagged regexp
             pattern.regexp_str = buildTaggedRegex(pattern.regexp_str);
+            pattern.rule_type = RuleTypeTagged;
         }
         pattern.regexp = std::make_shared<OptimizedRegularExpression>(pattern.regexp_str);
     }

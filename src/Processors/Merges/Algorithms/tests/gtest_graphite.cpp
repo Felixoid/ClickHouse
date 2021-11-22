@@ -425,19 +425,7 @@ TEST(GraphiteTest, testSelectPatternTyped)
         </retention>
     </pattern>
     <pattern>
-        <rule_type>tagged</rule_type>
-        <regexp><![CDATA[[\?&]retention=hour(&.*)?$]]></regexp>
-        <retention>
-            <age>0</age>
-            <precision>60</precision>
-        </retention>
-        <retention>
-            <age>86400</age>
-            <precision>3600</precision>
-        </retention>
-    </pattern>
-    <pattern>
-        <rule_type>tagged</rule_type>
+        <rule_type>tagged2</rule_type>
         <regexp> retention=10min ; env=staging </regexp>
         <retention>
             <age>0</age>
@@ -449,7 +437,7 @@ TEST(GraphiteTest, testSelectPatternTyped)
         </retention>
     </pattern>
     <pattern>
-        <rule_type>tagged</rule_type>
+        <rule_type>tagged2</rule_type>
         <regexp> retention=10min ; env=[A-Za-z-]+rod[A-Za-z-]+ </regexp>
         <retention>
             <age>0</age>
