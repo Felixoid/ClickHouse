@@ -93,7 +93,8 @@ namespace DB::Graphite
 {
 
 // sync with rule_types_str
-enum RuleType {
+enum RuleType
+{
     RuleTypeAll = 0,        // default, with regex, compatible with old scheme
     RuleTypePlain = 1,      // plain metrics, with regex, compatible with old scheme
     RuleTypeTagged = 2,     // tagged metrics, with regex, compatible with old scheme
