@@ -19,7 +19,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
         with:
-          ref: origin/HEAD
+          ref: HEAD
       - name: Generate versions
         run: |
           git fetch --tags
