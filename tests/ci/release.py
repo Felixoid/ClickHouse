@@ -111,18 +111,15 @@ class Release:
     @contextmanager
     def _create_gh_release(self, args: argparse.Namespace):
         with self._create_tag(args):
+            tag = self.version.describe
             self.run(
-                "gh release create --prerelease --draft "
-                f"--repo {args.repo} '{self.version.describe}'"
+                "gh release create --prerelease --draft " f"--repo {args.repo} '{tag}'"
             )
             try:
                 yield
             except BaseException:
                 logging.warning("Rolling back release publishing")
-                self.run(
-                    f"gh release delete --yes "
-                    f"--repo {args.repo} '{self.version.describe}'"
-                )
+                self.run(f"gh release delete --yes " f"--repo {args.repo} '{tag}'")
                 raise
 
     @contextmanager
