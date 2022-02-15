@@ -7,7 +7,13 @@ import argparse
 import logging
 
 from git_helper import commit
-from version_helper import git, get_version_from_repo, ClickHouseVersion, VersionType
+from version_helper import (
+    git,
+    get_abs_path,
+    get_version_from_repo,
+    ClickHouseVersion,
+    VersionType,
+)
 
 
 class Release:
@@ -83,7 +89,7 @@ class Release:
             yield
         except BaseException:
             logging.warning("Rolling back checked out %s for %s", ref, orig_ref)
-            self.run(f"git checkout {orig_ref}")
+            self.run(f"git reset --hard; git checkout {orig_ref}")
             raise
         else:
             if with_rollback and need_rollback:
@@ -98,6 +104,7 @@ class Release:
                 self.update()
                 self.version.with_description(VersionType.PRESTABLE)
                 with self._create_gh_release(args):
+                    self.bump_version_part("patch")
                     # At this point everything will rollback automatically
                     yield
 
