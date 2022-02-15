@@ -119,9 +119,9 @@ class Release:
         with self._push(release_branch, args):
             self.run(
                 f"gh pr create --repo {args.repo} --title 'Release pull request for "
-                f"branch {release_branch}' --body 'This PullRequest is a part of "
-                f"ClickHouse release cycle. It is used by CI system only. Do not "
-                f"perform any changes with it.' --label release"
+                f"branch {release_branch}' --head {release_branch} --body 'This "
+                "PullRequest is a part of ClickHouse release cycle. It is used by CI "
+                "system only. Do not perform any changes with it.' --label release"
             )
             # Here the prestable part is done
             yield
