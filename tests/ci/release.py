@@ -156,6 +156,7 @@ class Release:
 
         if args.release_type in self.BIG:
             with self.prestable(args):
+                logging.critical("Imagin, here something bad happend")
                 raise Exception("test rollback")
             # self.testing
 
