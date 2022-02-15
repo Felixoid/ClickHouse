@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-# -
-# TODO:
-# - use particular commit for release tag
-# - use context and roll-back changes on failure
-# - improve logging
 
 from contextlib import contextmanager
 from typing import Optional
@@ -68,7 +63,7 @@ class Release:
         self.version = get_version_from_repo()
 
     @contextmanager
-    def new_branch(self, name: str, start_point: str = ""):
+    def _new_branch(self, name: str, start_point: str = ""):
         self.run(f"git branch {name} {start_point}")
         try:
             yield
@@ -78,7 +73,7 @@ class Release:
             raise
 
     @contextmanager
-    def checkout(self, ref: str, with_rollback: bool = False):
+    def _checkout(self, ref: str, with_rollback: bool = False):
         orig_ref = self._git.branch or self._git.sha
         need_rollback = False
         if ref not in (self._git.branch, self._git.sha):
@@ -98,17 +93,17 @@ class Release:
     def prestable(self, args: argparse.Namespace):
         # Create release branch
         release_branch = f"{self.version.major}.{self.version.minor}"
-        with self.new_branch(release_branch, self.release_commit):
-            with self.checkout(release_branch, True):
+        with self._new_branch(release_branch, self.release_commit):
+            with self._checkout(release_branch, True):
                 self.update()
                 self.version.with_description(VersionType.PRESTABLE)
-                with self.publish_release(args):
+                with self._create_gh_release(args):
                     # At this point everything will rollback automatically
                     yield
 
     @contextmanager
-    def publish_release(self, args: argparse.Namespace):
-        with self.create_tag(args):
+    def _create_gh_release(self, args: argparse.Namespace):
+        with self._create_tag(args):
             self.run(
                 "gh release create --prerelease --draft "
                 f"--repo {args.repo} '{self.version.describe}'"
@@ -124,10 +119,10 @@ class Release:
                 raise
 
     @contextmanager
-    def create_tag(self, args: argparse.Namespace):
+    def _create_tag(self, args: argparse.Namespace):
         tag = self.version.describe
         self.run(f"git tag -a -m 'Release {tag}' '{tag}'")
-        with self.push(f"'{tag}'", args):
+        with self._push(f"'{tag}'", args):
             try:
                 yield
             except BaseException:
@@ -136,7 +131,7 @@ class Release:
                 raise
 
     @contextmanager
-    def push(self, ref: str, args: argparse.Namespace):
+    def _push(self, ref: str, args: argparse.Namespace):
         self.run(f"git push git@github.com:{args.repo}.git {ref}")
         try:
             yield
@@ -159,71 +154,6 @@ class Release:
                 logging.critical("Imagine, here something bad happend")
                 raise Exception("test rollback")
             # self.testing
-
-
-#    def update_versions(self, release_type: str, versions: VERSIONS) -> VERSIONS:
-#        # The only change to an old versions file is updating hash to the
-#        # current commit
-#        original_versions = versions
-#        original_versions["VERSION_GITHASH"] = self.sha
-#        original_versions["VERSION_STRING"] = (
-#            f"{original_versions['VERSION_MAJOR']}."
-#            f"{original_versions['VERSION_MINOR']}."
-#            f"{original_versions['VERSION_PATCH']}."
-#            f"{self.commits_since_tag}"
-#        )
-#        original_versions["VERSION_DESCRIBE"] = (
-#            f"v{original_versions['VERSION_MAJOR']}."
-#            f"{original_versions['VERSION_MINOR']}."
-#            f"{original_versions['VERSION_PATCH']}."
-#            f"{self.commits_since_tag}-prestable"
-#        )
-#
-#        versions = original_versions.copy()
-#        self.new_branch = f"{versions['VERSION_MAJOR']}.{versions['VERSION_MINOR']}"
-#
-#        tag_version, tag_type = self.latest_tag.split("-", maxsplit=1)
-#        tag_parts = tag_version[1:].split(".")
-#        if (
-#            tag_type in ("prestable", "testing")
-#            and tag_parts[0] == versions["VERSION_MAJOR"]
-#            and tag_parts[1] == versions["VERSION_MINOR"]
-#        ):
-#            # changes are incremental for these releases
-#            versions["changes"] = (
-#                int(tag_version.split(".")[-1]) + self.commits_since_tag
-#            )
-#        else:
-#            versions["changes"] = self.commits_since_tag
-#
-#        self.new_tag = (
-#            "v{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}.{changes}"
-#            "-prestable".format_map(versions)
-#        )
-#
-#        if release_type == "patch":
-#            self.create_new_branch = False
-#            versions["VERSION_PATCH"] = int(versions["VERSION_PATCH"]) + 1
-#        elif release_type == "minor":
-#            versions["VERSION_MINOR"] = int(versions["VERSION_MINOR"]) + 1
-#            versions["VERSION_PATCH"] = 1
-#        elif release_type == "major":
-#            versions["VERSION_MAJOR"] = int(versions["VERSION_MAJOR"]) + 1
-#            versions["VERSION_MINOR"] = 1
-#            versions["VERSION_PATCH"] = 1
-#        else:
-#            raise ValueError(f"release type {release_type} is not known")
-#
-#        # Should it be updated for any release?..
-#        versions["VERSION_STRING"] = (
-#            f"{versions['VERSION_MAJOR']}."
-#            f"{versions['VERSION_MINOR']}."
-#            f"{versions['VERSION_PATCH']}.1"
-#        )
-#        versions["VERSION_REVISION"] = int(versions["VERSION_REVISION"]) + 1
-#        versions["VERSION_GITHASH"] = self.sha
-#        versions["VERSION_DESCRIBE"] = f"v{versions['VERSION_STRING']}-prestable"
-#        return versions
 
 
 def parse_args() -> argparse.Namespace:
