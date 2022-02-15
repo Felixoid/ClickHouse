@@ -103,13 +103,38 @@ class Release:
                 self.update()
                 self.version.with_description(VersionType.PRESTABLE)
                 with self._create_gh_release(args):
-                    with self._bump_prestable_versions(args):
+                    with self._bump_prestable_version(release_branch, args):
                         # At this point everything will rollback automatically
                         yield
 
     @contextmanager
-    def _bump_prestable_versions(self, args: argparse.Namespace):
-        release_branch = f"{self.version.major}.{self.version.minor}"
+    def testing(self, args: argparse.Namespace):
+        # Create branch for a version bump
+        self.version = self.version.update(args.release_type)
+        helper_branch = f"{self.version.major}.{self.version.minor}-prepare"
+        with self._new_branch(helper_branch, self.release_commit):
+            with self._checkout(helper_branch, True):
+                with self._bump_testing_version(helper_branch, args):
+                    pass
+
+    @contextmanager
+    def _bump_testing_version(self, helper_branch: str, args: argparse.Namespace):
+        update_cmake_version(self.version)
+        cmake_path = get_abs_path(FILE_WITH_VERSION_PATH)
+        self.run(
+            f"git commit -m 'Update version to {self.version.string}' '{cmake_path}'"
+        )
+        with self._push(helper_branch, args):
+            body_file = get_abs_path(".github/PULL_REQUEST_TEMPLATE.md")
+            self.run(
+                f"gh pr create --repo {args.repo} --title 'Update version after "
+                f"release' --head {helper_branch} --body-file '{body_file}'"
+            )
+            # Here the prestable part is done
+            yield
+
+    @contextmanager
+    def _bump_prestable_version(self, release_branch: str, args: argparse.Namespace):
         new_version = self.version.patch_update()
         update_cmake_version(new_version)
         cmake_path = get_abs_path(FILE_WITH_VERSION_PATH)
@@ -178,7 +203,9 @@ class Release:
             else:
                 with self.prestable(args):
                     logging.info("Prestable part of the releasing is done")
-            # self.testing
+
+            with self.testing(args):
+                pass
 
 
 def parse_args() -> argparse.Namespace:
