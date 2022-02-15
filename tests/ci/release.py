@@ -124,7 +124,7 @@ class Release:
     def create_tag(self, args: argparse.Namespace):
         tag = self.version.describe
         self.run(f"git tag -a -m 'Release {tag}' '{tag}'")
-        with self.push_tag(args):
+        with self.push(f"'{tag}'", args):
             try:
                 yield
             except BaseException:
@@ -132,13 +132,12 @@ class Release:
                 raise
 
     @contextmanager
-    def push_tag(self, args: argparse.Namespace):
-        tag = self.version.describe
-        self.run(f"git push git@github.com:{args.repo}.git '{tag}'")
+    def push(self, ref: str, args: argparse.Namespace):
+        self.run(f"git push git@github.com:{args.repo}.git {ref}")
         try:
             yield
         except BaseException:
-            self.run(f"git push -d git@github.com:{args.repo}.git '{tag}'")
+            self.run(f"git push -d git@github.com:{args.repo}.git {ref}")
             raise
 
     def do(self, args: argparse.Namespace):
