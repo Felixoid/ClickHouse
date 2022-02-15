@@ -125,7 +125,7 @@ class Release:
             # Preserve tag if version is changed
             tag = self.version.describe
             self.run(
-                "gh release create --prerelease --draft --repo {args.repo} '{tag}'"
+                f"gh release create --prerelease --draft --repo {args.repo} '{tag}'"
             )
             try:
                 yield
