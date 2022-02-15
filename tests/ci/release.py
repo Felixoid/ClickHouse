@@ -8,11 +8,13 @@ import logging
 
 from git_helper import commit
 from version_helper import (
+    FILE_WITH_VERSION_PATH,
+    ClickHouseVersion,
+    VersionType,
     git,
     get_abs_path,
     get_version_from_repo,
-    ClickHouseVersion,
-    VersionType,
+    update_cmake_version,
 )
 
 
@@ -61,9 +63,6 @@ class Release:
             if self._git.branch != branch:
                 raise Exception(f"branch must be '{branch}' for {release_type} release")
 
-    def bump_version_part(self, release_type: str):
-        self.version = self.version.update(release_type)
-
     def update(self):
         self._git.update()
         self.version = get_version_from_repo()
@@ -104,22 +103,35 @@ class Release:
                 self.update()
                 self.version.with_description(VersionType.PRESTABLE)
                 with self._create_gh_release(args):
-                    self.bump_version_part("patch")
-                    # At this point everything will rollback automatically
-                    yield
+                    with self._bump_prestable_versions(args):
+                        # At this point everything will rollback automatically
+                        yield
+
+    @contextmanager
+    def _bump_prestable_versions(self, args: argparse.Namespace):
+        release_branch = f"{self.version.major}.{self.version.minor}"
+        new_version = self.version.patch_update()
+        update_cmake_version(new_version)
+        cmake_path = get_abs_path(FILE_WITH_VERSION_PATH)
+        self.run(
+            f"git commit -m 'Update version to {new_version.string}' '{cmake_path}'"
+        )
+        with self._push(release_branch, args):
+            yield
 
     @contextmanager
     def _create_gh_release(self, args: argparse.Namespace):
         with self._create_tag(args):
+            # Preserve tag if version is changed
             tag = self.version.describe
             self.run(
-                "gh release create --prerelease --draft " f"--repo {args.repo} '{tag}'"
+                "gh release create --prerelease --draft --repo {args.repo} '{tag}'"
             )
             try:
                 yield
             except BaseException:
                 logging.warning("Rolling back release publishing")
-                self.run(f"gh release delete --yes " f"--repo {args.repo} '{tag}'")
+                self.run(f"gh release delete --yes --repo {args.repo} '{tag}'")
                 raise
 
     @contextmanager
