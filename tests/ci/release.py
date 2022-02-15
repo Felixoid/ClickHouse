@@ -73,6 +73,7 @@ class Release:
         try:
             yield
         except BaseException:
+            logging.warning("Rolling back created branch %s", name)
             self.run(f"git branch -D {name}")
             raise
 
@@ -86,6 +87,7 @@ class Release:
         try:
             yield
         except BaseException:
+            logging.warning("Rolling back checked out %s for %s", ref, orig_ref)
             self.run(f"git checkout {orig_ref}")
             raise
         else:
@@ -114,6 +116,7 @@ class Release:
             try:
                 yield
             except BaseException:
+                logging.warning("Rolling back release publishing")
                 self.run(
                     f"gh release delete --yes "
                     f"--repo {args.repo} '{self.version.describe}'"
@@ -128,6 +131,7 @@ class Release:
             try:
                 yield
             except BaseException:
+                logging.warning("Rolling back tag %s", tag)
                 self.run(f"git tag -d '{tag}'")
                 raise
 
@@ -137,6 +141,7 @@ class Release:
         try:
             yield
         except BaseException:
+            logging.warning("Rolling back pushed ref %s", ref)
             self.run(f"git push -d git@github.com:{args.repo}.git {ref}")
             raise
 
