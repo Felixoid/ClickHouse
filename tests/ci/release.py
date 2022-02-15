@@ -170,13 +170,13 @@ class Release:
     def _create_tag(self, args: argparse.Namespace):
         tag = self.version.describe
         self.run(f"git tag -a -m 'Release {tag}' '{tag}'")
-        with self._push(f"'{tag}'", args):
-            try:
+        try:
+            with self._push(f"'{tag}'", args):
                 yield
-            except BaseException:
-                logging.warning("Rolling back tag %s", tag)
-                self.run(f"git tag -d '{tag}'")
-                raise
+        except BaseException:
+            logging.warning("Rolling back tag %s", tag)
+            self.run(f"git tag -d '{tag}'")
+            raise
 
     @contextmanager
     def _push(self, ref: str, args: argparse.Namespace):
