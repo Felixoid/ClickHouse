@@ -139,9 +139,13 @@ class VersionType:
     VALID = (TESTING, PRESTABLE, STABLE, LTS)
 
 
+def get_abs_path(path: str) -> str:
+    return p.abspath(p.join(git.root, path))
+
+
 def read_versions(versions_path: str = FILE_WITH_VERSION_PATH) -> VERSIONS:
     versions = {}
-    path_to_file = p.join(git.root, versions_path)
+    path_to_file = get_abs_path(versions_path)
     with open(path_to_file, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -177,7 +181,7 @@ def update_cmake_version(
     version: ClickHouseVersion,
     versions_path: str = FILE_WITH_VERSION_PATH,
 ):
-    path_to_file = p.join(git.root, versions_path)
+    path_to_file = get_abs_path(versions_path)
     with open(path_to_file, "w", encoding="utf-8") as f:
         f.write(VERSIONS_TEMPLATE.format_map(version.as_dict()))
 
@@ -217,7 +221,7 @@ def update_contributors(
     content = CONTRIBUTORS_TEMPLATE.format(
         executer=executer, contributors="\n".join(contributors)
     )
-    contributors_path = p.abspath(p.join(git.root, relative_contributors_path))
+    contributors_path = get_abs_path(relative_contributors_path)
     with open(contributors_path, "w", encoding="utf-8") as cfd:
         cfd.write(content)
 
