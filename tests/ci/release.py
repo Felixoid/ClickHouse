@@ -49,6 +49,14 @@ class Release:
     def release_commit(self, release_commit: str):
         self._release_commit = commit(release_commit)
 
+    def check_no_tags_after(self):
+        tags_after_commit = self.run(f"git tag --contains={self.release_commit}")
+        if tags_after_commit:
+            raise Exception(
+                f"Commit {self.release_commit} belongs to following tags:\n"
+                f"{tags_after_commit}\nChoose another commit"
+            )
+
     def check_branch(self, release_type: str):
         if release_type in self.BIG:
             # Commit to spin up the release must belong to a main branch
@@ -189,11 +197,13 @@ class Release:
             raise
 
     def do(self, args: argparse.Namespace):
+        self.release_commit = args.commit
+        self.check_no_tags_after()
+
         if not args.no_check_dirty:
             logging.info("Checking if repo is clean")
             self.run("git diff HEAD --exit-code")
 
-        self.release_commit = args.commit
         if not args.no_check_branch:
             self.check_branch(args.release_type)
 
