@@ -105,6 +105,7 @@ class Release:
     @contextmanager
     def prestable(self, args: argparse.Namespace):
         # Create release branch
+        self.update()
         release_branch = f"{self.version.major}.{self.version.minor}"
         with self._new_branch(release_branch, self.release_commit):
             with self._checkout(release_branch, True):
@@ -118,6 +119,7 @@ class Release:
     @contextmanager
     def testing(self, args: argparse.Namespace):
         # Create branch for a version bump
+        self.update()
         self.version = self.version.update(args.release_type)
         helper_branch = f"{self.version.major}.{self.version.minor}-prepare"
         with self._new_branch(helper_branch, self.release_commit):
