@@ -123,7 +123,7 @@ class Release:
         with self._new_branch(helper_branch, self.release_commit):
             with self._checkout(helper_branch, True):
                 with self._bump_testing_version(helper_branch, args):
-                    pass
+                    yield
 
     @contextmanager
     def _bump_testing_version(self, helper_branch: str, args: argparse.Namespace):
@@ -215,7 +215,7 @@ class Release:
                     logging.info("Prestable part of the releasing is done")
 
             with self.testing(args):
-                pass
+                logging.info("Testing part of the releasing is done")
 
 
 def parse_args() -> argparse.Namespace:
